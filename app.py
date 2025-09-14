@@ -1,44 +1,25 @@
 import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-
-# Configuración de base de datos para psycopg3
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    # Para psycopg3, mantener postgresql://
-    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/sistema_pqrsd'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto')
-
-db = SQLAlchemy(app)
-
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session
-from config import Config
-from models import db, PQRSD, Usuario, Area, Historial, Rol
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract
 
 app = Flask(__name__)
-app.config.from_object(Config)
-app.secret_key = 'supersecretkey'  # Cambia esto por una clave segura
 
-# Inicializar SQLAlchemy
+# Configuración de base de datos para Render/Postgres
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://')
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or 'sqlite:///local.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto')
+
+# Importa modelos y db correctamente
+from models import db, PQRSD, Usuario, Area, Historial, Rol
 db.init_app(app)
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('Sesión cerrada correctamente', 'success')
-    return redirect(url_for('login'))
-
+# Inicialización de tablas y datos iniciales
 with app.app_context():
     db.create_all()
-
     if not Area.query.first():
         areas_iniciales = [
             Area(nombre="Atención al Ciudadano", descripcion="Recepción inicial de PQRSD"),
@@ -49,7 +30,6 @@ with app.app_context():
         ]
         db.session.add_all(areas_iniciales)
         db.session.commit()
-
     if not Rol.query.first():
         roles_iniciales = [
             Rol(nombre="Administrador", descripcion="Encargado de supervisar y gestionar el proceso PQRSD"),
@@ -59,29 +39,28 @@ with app.app_context():
         db.session.add_all(roles_iniciales)
         db.session.commit()
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Sesión cerrada correctamente', 'success')
+    return redirect(url_for('login'))
 
 @app.route("/")
 def index():
-    from models import PQRSD, Usuario
-    
-    # Obtener estadísticas reales
     total_pqrsd = PQRSD.query.count()
     pendientes = PQRSD.query.filter_by(estado="Pendiente").count()
     resueltas = PQRSD.query.filter_by(estado="Resuelta").count()
     usuarios_activos = Usuario.query.count()
-    
-    # Obtener áreas para el formulario
     areas = Area.query.all()
     tipos_peticionario = ["Persona natural", "Persona jurídica", "Autoridad pública", "Periodista", "Concejal", "Otro"]
-    
     return render_template("index.html", 
-                         total_pqrsd=total_pqrsd,
-                         pendientes=pendientes,
-                         resueltas=resueltas,
-                         usuarios_activos=usuarios_activos,
-                         areas=areas,
-                         tipos_peticionario=tipos_peticionario)
-
+        total_pqrsd=total_pqrsd,
+        pendientes=pendientes,
+        resueltas=resueltas,
+        usuarios_activos=usuarios_activos,
+        areas=areas,
+        tipos_peticionario=tipos_peticionario
+    )
 
 @app.route("/dashboard")
 def dashboard():
@@ -248,8 +227,6 @@ def gestion():
         query = query.filter(PQRSD.area_id == area_id)
     if prioridad:
         query = query.filter(PQRSD.prioridad == prioridad)
-
-    # Filtro de búsqueda por cédula, nombre o radicado
     if busqueda:
         busqueda_like = f"%{busqueda}%"
         query = query.filter(
@@ -277,71 +254,6 @@ def responder_pqrs():
         else:
             flash("No se encontró la PQRS con ese ID.", "danger")
     return render_template("responder_pqrs.html", pqrs_id=pqrs_id)
-    if request.method == "POST":
-        pqrs_id = request.form.get("pqrs_id")
-        respuesta = request.form.get("respuesta")
-        pqrs = PQRSD.query.filter_by(id=pqrs_id).first()
-        if pqrs:
-            pqrs.respuesta = respuesta
-            pqrs.estado = "Resuelta"
-            pqrs.fecha_resolucion = datetime.now()
-            db.session.commit()
-            flash("Respuesta enviada correctamente.", "success")
-        else:
-            flash("No se encontró la PQRS con ese ID.", "danger")
-    return render_template("responder_pqrs.html")
-
-    tipo = request.args.get("tipo", "")
-    estado = request.args.get("estado", "")
-    area_id = request.args.get("area_id", "")
-    prioridad = request.args.get("prioridad", "")
-    busqueda = request.args.get("busqueda", "")
-
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 10, type=int)
-
-    query = PQRSD.query
-    if tipo:
-        query = query.filter(PQRSD.tipo == tipo)
-    if estado:
-        # Map frontend 'Resuelto' to backend 'Resuelta'
-        estado_db = estado
-        if estado == 'Resuelto':
-            estado_db = 'Resuelta'
-        query = query.filter(PQRSD.estado == estado_db)
-    if area_id:
-        query = query.filter(PQRSD.area_id == area_id)
-    if prioridad:
-        query = query.filter(PQRSD.prioridad == prioridad)
-    if busqueda:
-        search = f"%{busqueda}%"
-        # Try exact match for radicado (ID) if busqueda is numeric
-        if busqueda.isdigit():
-            query = query.filter(
-                (PQRSD.solicitante_identificacion.ilike(search)) |
-                (PQRSD.solicitante_nombre.ilike(search)) |
-                (PQRSD.id == int(busqueda))
-            )
-        else:
-            query = query.filter(
-                (PQRSD.solicitante_identificacion.ilike(search)) |
-                (PQRSD.solicitante_nombre.ilike(search))
-            )
-
-    query = query.order_by(PQRSD.fecha_creacion.desc())
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    items = pagination.items
-
-    areas = Area.query.all()
-
-    return render_template(
-        "gestion.html",
-        items=items,
-        pagination=pagination,
-        areas=areas,
-        filtros={"tipo": tipo, "estado": estado, "area_id": area_id, "prioridad": prioridad, "busqueda": busqueda}
-    )
-
 
 @app.route("/reportes")
 def reportes():
