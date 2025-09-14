@@ -1,0 +1,45 @@
+{% extends "base.html" %} {% block title %}Iniciar Sesión{% endblock %} {% block
+content %}
+<div class=" container my-5 " >
+  
+  <div class="row">
+  <h2 class="mb-4 text-center">Iniciar Sesión</h2>
+  
+   <div class="card mx-auto" style="max-width: 500px">
+     <div class="card-body">
+      <form method="POST">
+        <div class="mb-3">
+          <label for="usuario" class="form-label">Correo electrónico</label>
+          <input
+            type="email"
+            id="usuario"
+            name="usuario"
+            class="form-control"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label" >Contraseña</label>
+          
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+      </form>
+    </div>
+  
+     </div>
+      <img src="/static/css/Imagenes/login.png" alt="Imagen de usuario" class="img-login col-md-6 d-flex align-items-center justify-content-center" >
+
+     </div>
+      
+  </div>
+
+</div>
+
+{% endblock %}

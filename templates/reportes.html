@@ -1,0 +1,246 @@
+{% extends 'base.html' %} 
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-2 fw-bold">Panel de Analytics - Administración</h2>
+  <p class="text-muted mb-4">Métricas avanzadas y análisis del sistema PQRSD</p>
+  
+  <!-- Filtros de fecha -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Filtros de Reporte</h5>
+      <form method="GET" action="{{ url_for('reportes') }}" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Fecha Inicio</label>
+          <input type="date" class="form-control" name="fecha_inicio" value="{{ fecha_inicio }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha Fin</label>
+          <input type="date" class="form-control" name="fecha_fin" value="{{ fecha_fin }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary me-2">Aplicar Filtros</button>
+          <a href="{{ url_for('reportes') }}" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tarjetas de resumen -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <div class="fs-4 fw-bold text-primary">{{ total or 0 }}</div>
+          <div class="text-muted">Total PQRSD</div>
+          <div class="text-muted small mt-2">
+            Período seleccionado
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <div class="fs-4 fw-bold text-success">
+            {{ (por_estado.get('Resuelta', 0) / total * 100)|round(1) if total > 0 else 0 }}%
+          </div>
+          <div class="text-muted">Tasa de Resolución</div>
+          <div class="text-muted small mt-2">
+            {{ por_estado.get('Resuelta', 0) }} de {{ total }} resueltas
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <div class="fs-4 fw-bold text-info">
+            {{ tiempo_promedio|round(1) if tiempo_promedio else 0 }} <span class="fs-6">días</span>
+          </div>
+          <div class="text-muted">Tiempo Promedio</div>
+          <div class="text-muted small mt-2">
+            De creación a resolución
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <div class="fs-4 fw-bold text-warning">
+            {{ por_prioridad.get('Alta', 0) }}
+          </div>
+          <div class="text-muted">PQRSD Críticas</div>
+          <div class="text-muted small mt-2">
+            Prioridad Alta pendientes
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos principales -->
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Tendencias Mensuales</h5>
+          <canvas id="tendenciasMensualesChart" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Distribución por Tipo</h5>
+          <canvas id="tipoChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tablas de análisis -->
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Desempeño por Área</h5>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Área</th>
+                  <th>Total</th>
+                  <th>Resueltas</th>
+                  <th>Eficiencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for area in areas_stats %}
+                <tr>
+                  <td>{{ area.nombre }}</td>
+                  <td>{{ area.total }}</td>
+                  <td class="text-success">{{ area.resueltas }}</td>
+                  <td>
+                    <span class="badge {% if area.eficiencia >= 80 %}bg-success{% elif area.eficiencia >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                      {{ area.eficiencia }}%
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Métricas por Estado</h5>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Estado</th>
+                  <th>Cantidad</th>
+                  <th>Porcentaje</th>
+                  <th>Tiempo Prom.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for estado, cantidad in por_estado.items() %}
+                <tr>
+                  <td>{{ estado }}</td>
+                  <td>{{ cantidad }}</td>
+                  <td>{{ (cantidad / total * 100)|round(1) if total > 0 else 0 }}%</td>
+                  <td>
+                    {% if estado == 'Resuelta' %}
+                    {{ tiempo_promedio|round(1) }} días
+                    {% else %}
+                    -
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de exportación -->
+  <div class="d-flex justify-content-end mb-4">
+    <a href="{{ url_for('descargar_reporte_excel') }}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}" 
+       class="btn btn-outline-primary me-2">
+      <i class="bi bi-file-earmark-excel me-2"></i>Exportar Excel
+    </a>
+    <a href="{{ url_for('descargar_reporte_pdf') }}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}" 
+       class="btn btn-outline-danger">
+      <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+    </a>
+  </div>
+</div>
+
+<!-- Scripts de gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Gráfico de tendencias mensuales
+  const tendenciasMensuales = {{ tendencias_mensuales|tojson }};
+  const ctxTendencias = document.getElementById('tendenciasMensualesChart').getContext('2d');
+  new Chart(ctxTendencias, {
+    type: 'bar',
+    data: {
+      labels: tendenciasMensuales.map(item => item.label),
+      datasets: [{
+        label: 'PQRSD por Mes',
+        data: tendenciasMensuales.map(item => item.total),
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Gráfico de distribución por tipo
+  const porTipoData = {{ por_tipo|tojson }};
+  const ctxTipo = document.getElementById('tipoChart').getContext('2d');
+  new Chart(ctxTipo, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(porTipoData),
+      datasets: [{
+        data: Object.values(porTipoData),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.7)',
+          'rgba(54, 162, 235, 0.7)',
+          'rgba(255, 206, 86, 0.7)',
+          'rgba(75, 192, 192, 0.7)',
+          'rgba(153, 102, 255, 0.7)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

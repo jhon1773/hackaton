@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+<!-- index.html -->
+
+{% block title %}Inicio - Sistema PQRSD{% endblock %} {% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container hero">
+    <div class="row align-items-center hero-content">
+      <div class="col-lg-7 hero-space">
+        <h1 class="fw-bold mb-3">Gestión PQRS PRO</h1>
+        <p class="lead mb-4">
+          Modernice la atención al ciudadano con nuestra plataforma
+          especializada en Peticiones, Quejas, Reclamos, Solicitudes y
+          Denuncias.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if session.get('user_id') %}
+          <a href="{{ url_for('nueva_pqrsd') }}" class="btn btn-light btn-lg">
+            <i class="bi bi-plus-circle me-2"></i> Crear PQRSD
+          </a>
+          {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-light btn-lg">
+            <i class="bi bi-plus-circle me-2"></i> Crear PQRSD
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <img
+          src="/static/css/Imagenes/Logo_principal.png"
+          alt="Sistema PQRSD"
+          class="img-fluid img-hero"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Separador de sección -->
+<div class="section-divider"></div>
+
+<!-- Estadísticas rápidas -->
+<section class="section-spacing bg-gradient-light">
+  <div class="container">
+    <h2 class="section-title">Estadísticas del Sistema</h2>
+    <div class="row g-3">
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <i class="bi bi-chat-text stat-icon"></i>
+          <h3 class="stat-number">{{ total_pqrsd }}</h3>
+          <p class="mb-0">PQRSD Totales</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <i class="bi bi-clock-history stat-icon"></i>
+          <h3 class="stat-number">{{ pendientes }}</h3>
+          <p class="mb-0">Pendientes</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <i class="bi bi-check-circle stat-icon"></i>
+          <h3 class="stat-number">{{ resueltas }}</h3>
+          <p class="mb-0">Resueltas</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card">
+          <i class="bi bi-people stat-icon"></i>
+          <h3 class="stat-number">{{ usuarios_activos }}</h3>
+          <p class="mb-0">Usuarios activos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Separador de sección -->
+<div class="section-divider"></div>
+
+<!-- Formulario rápido -->
+<section class="section-spacing bg-alternate">
+  <div class="container">
+    <h2 class="section-title">Crear Nueva PQRSD</h2>
+    <div class="row g-4">
+      <!-- Formulario -->
+      <div class="col-lg-7">
+        <div class="formulario-box">
+          <h3 class="mb-4 text-primary">Formulario PQRSD</h3>
+          <form action="{{ url_for('nueva_pqrsd') }}" method="POST">
+            <div class="mb-3">
+              <label class="form-label">Tipo de Solicitud *</label>
+              <select class="form-select" name="tipo" required>
+                <option selected disabled>Selecciona una opción</option>
+                <option value="Petición">Petición</option>
+                <option value="Queja">Queja</option>
+                <option value="Reclamo">Reclamo</option>
+                <option value="Solicitud">Solicitud</option>
+                <option value="Denuncia">Denuncia</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Descripción *</label>
+              <textarea
+                class="form-control"
+                name="descripcion"
+                rows="4"
+                placeholder="Describe detalladamente tu solicitud, queja, reclamo, sugerencia o denuncia"
+                required
+              ></textarea>
+            </div>
+
+            <h5 class="mt-4">Datos del solicitante</h5>
+
+            <div class="mb-3">
+              <label class="form-label">Nombre completo *</label>
+              <input
+                type="text"
+                class="form-control"
+                name="solicitante_nombre"
+                placeholder="Ingresa tu nombre completo"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Número de Documento *</label>
+              <input
+                type="text"
+                class="form-control"
+                name="solicitante_identificacion"
+                placeholder="Número de cédula o identificación"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Información de contacto *</label>
+              <input
+                type="text"
+                class="form-control"
+                name="solicitante_contacto"
+                placeholder="Teléfono, email o dirección"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Tipo de Peticionario *</label>
+              <select class="form-select" name="tipo_peticionario" required>
+                <option value="Persona natural">Persona natural</option>
+                <option value="Persona jurídica">Persona jurídica</option>
+                <option value="Autoridad pública">Autoridad pública</option>
+                <option value="Periodista">Periodista</option>
+                <option value="Concejal">Concejal</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Área responsable *</label>
+              <select class="form-select" name="area_id" required>
+                <option selected disabled>Selecciona un área</option>
+                {% for area in areas %}
+                <option value="{{ area.id }}">{{ area.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Prioridad *</label>
+              <select class="form-select" name="prioridad" required>
+                <option value="Baja">Baja (15 días)</option>
+                <option value="Media">Media (10 días)</option>
+                <option value="Alta">Alta (5 días)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Medio de recepción *</label>
+              <select class="form-select" name="medio" required>
+                <option value="Presencial">Presencial</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Correo_electronico">Correo electrónico</option>
+                <option value="Telefono">Teléfono</option>
+                <option value="Pagina_web">Página web</option>
+                <option value="Oficina_virtual">Oficina virtual</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-send me-2"></i> Enviar PQRSD
+            </button>
+          </form>
+        </div>
+      </div>
+      <!-- Info -->
+      <div class="col-lg-5">
+        <div class="info-box">
+          <h4 class="mb-3 text-success">¿Qué es PQRSD?</h4>
+          <p>
+            Es el mecanismo que permite a los ciudadanos presentar sus
+            Peticiones, Quejas, Reclamos, Solicitudes y Denuncias de manera
+            formal y gratuita.
+          </p>
+          <ul class="feature-list">
+            <li>Atención ágil y transparente</li>
+            <li>Respuestas en tiempos legales</li>
+            <li>Mejora continua en la gestión</li>
+            <li>Seguimiento en tiempo real</li>
+            <li>Protección de datos personales</li>
+          </ul>
+
+          <div class="alert alert-info mt-4">
+            <h6><i class="bi bi-info-circle me-2"></i>Importante</h6>
+            <p class="mb-0">
+              Todos los campos marcados con * son obligatorios. Tu información
+              personal será protegida según la ley de protección de datos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Separador de sección -->
+<div class="section-divider"></div>
+
+<!-- Tipos de PQRSD -->
+<section class="section-spacing bg-gradient-light">
+  <div class="container">
+    <h2 class="section-title">Tipos de PQRSD</h2>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card card-pqrsd text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-chat-dots pqrsd-icon icon-peticion"></i>
+            <h5 class="card-title">Peticiones</h5>
+            <p class="card-text">
+              Solicitudes de información, consulta o documentos requeridos por
+              los ciudadanos.
+            </p>
+            <a
+              href="{{ url_for('nueva_pqrsd') }}?tipo=Petición"
+              class="btn btn-primary mt-3"
+              >Crear Petición</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-pqrsd text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-exclamation-triangle pqrsd-icon icon-queja"></i>
+            <h5 class="card-title">Quejas</h5>
+            <p class="card-text">
+              Manifestaciones de inconformidad respecto a la prestación de un
+              servicio.
+            </p>
+            <a
+              href="{{ url_for('nueva_pqrsd') }}?tipo=Queja"
+              class="btn btn-warning mt-3"
+              >Crear Queja</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-pqrsd text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-shield-exclamation pqrsd-icon icon-reclamo"></i>
+            <h5 class="card-title">Reclamos</h5>
+            <p class="card-text">
+              Solicitudes para resolver situaciones irregulares en servicios
+              prestados.
+            </p>
+            <a
+              href="{{ url_for('nueva_pqrsd') }}?tipo=Reclamo"
+              class="btn btn-danger mt-3"
+              >Crear Reclamo</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+      <div class="col-md-6">
+        <div class="card card-pqrsd text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-lightbulb pqrsd-icon icon-solicitud"></i>
+            <h5 class="card-title">Solicitudes</h5>
+            <p class="card-text">
+              Peticiones específicas para obtener un servicio, permiso o
+              autorización.
+            </p>
+            <a
+              href="{{ url_for('nueva_pqrsd') }}?tipo=Solicitud"
+              class="btn btn-info mt-3"
+              >Crear Solicitud</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card card-pqrsd text-center h-100">
+          <div class="card-body">
+            <i class="bi bi-shield-x pqrsd-icon icon-denuncia"></i>
+            <h5 class="card-title">Denuncias</h5>
+            <p class="card-text">
+              Reportes sobre presuntas irregularidades o incumplimientos
+              normativos.
+            </p>
+            <a
+              href="{{ url_for('nueva_pqrsd') }}?tipo=Denuncia"
+              class="btn btn-dark mt-3"
+              >Crear Denuncia</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Separador de sección -->
+<div class="section-divider"></div>
+
+<!-- Proceso de gestión -->
+<section class="section-spacing bg-alternate">
+  <div class="container">
+    <h2 class="section-title">Proceso de Gestión PQRS</h2>
+    <div class="row">
+      <div class="col-md-2 col-6 mb-3">
+        <div class="process-step">
+          <div class="process-icon">
+            <i class="bi bi-plus-lg"></i>
+          </div>
+          <h6>Registro</h6>
+          <small>Creación de la PQRS</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6 mb-3">
+        <div class="process-step">
+          <div class="process-icon">
+            <i class="bi bi-clipboard-check"></i>
+          </div>
+          <h6>Clasificación</h6>
+          <small>Asignación de tipo y prioridad</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6 mb-3">
+        <div class="process-step">
+          <div class="process-icon">
+            <i class="bi bi-arrow-right-circle"></i>
+          </div>
+          <h6>Derivación</h6>
+          <small>Asignación al área correspondiente</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6 mb-3">
+        <div class="process-step">
+          <div class="process-icon">
+            <i class="bi bi-gear"></i>
+          </div>
+          <h6>Procesamiento</h6>
+          <small>Gestión y resolución del caso</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6 mb-3">
+        <div class="process-step">
+          <div class="process-icon">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <h6>Resolución</h6>
+          <small>Solución y respuesta al ciudadano</small>
+        </div>
+      </div>
+      <div class="col-md-2 col-6 mb-3">
+        <div class="process-step">
+          <div class="process-icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <h6>Seguimiento</h6>
+          <small>Indicadores y mejora continua</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

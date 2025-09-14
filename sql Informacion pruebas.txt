@@ -1,0 +1,152 @@
+-- Usar la base de datos
+USE sistema_pqrsd;
+
+-- =============================================================================
+-- Actualizar roles
+-- =============================================================================
+
+DELETE FROM roles;
+
+INSERT INTO roles (id, nombre, descripcion) VALUES
+(1, 'Administrador', 'Encargado de supervisar y gestionar el proceso PQRSD'),
+(2, 'Funcionario', 'Responsable de responder PQRSD asignadas'),
+(3, 'Usuario', 'Persona externa que registra PQRSD'),
+(7, 'Supervisor', 'Supervisa el trabajo de los analistas y coordinadores'),
+(9, 'Ciudadano', 'Usuario externo que registra PQRSD');
+
+
+-- =============================================================================
+-- INSERTAR DATOS DE PRUEBA
+-- =============================================================================
+
+-- 1. Insertar más áreas adicionales
+INSERT INTO areas (nombre, descripcion) VALUES
+('Infraestructura', 'Gestión de proyectos de infraestructura y obras públicas'), -- Área para proyectos de construcción
+('Salud', 'Atención en salud y servicios médicos'), -- Para PQRSD relacionadas con servicios de salud
+('Educación', 'Servicios educativos y académicos'), -- Para temas relacionados con educación
+('Medio Ambiente', 'Gestión ambiental y recursos naturales'), -- Para PQRSD ambientales
+('Transporte', 'Servicios de transporte y movilidad'); -- Para temas de transporte
+
+-- 2. Insertar más roles específicos
+-- Insertar roles faltantes si no existen
+INSERT INTO roles (id, nombre, descripcion) VALUES
+(3, 'Usuario', 'Persona externa que registra PQRSD')
+ON DUPLICATE KEY UPDATE nombre = nombre;
+
+INSERT INTO roles (id, nombre, descripcion) VALUES
+(7, 'Supervisor', 'Supervisa el trabajo de los analistas y coordinadores')
+ON DUPLICATE KEY UPDATE nombre = nombre;
+
+INSERT INTO roles (id, nombre, descripcion) VALUES
+(9, 'Ciudadano', 'Usuario externo que registra PQRSD')
+ON DUPLICATE KEY UPDATE nombre = nombre;
+
+INSERT INTO usuarios (nombre, email, password, area_id, rol_id) VALUES
+('Admin Principal', 'admin@empresa.com', 'admin123', 1, 1),
+('Admin Secundario', 'admin2@empresa.com', 'admin456', 2, 1),
+('Coordinador RH', 'coord.rh@empresa.com', 'coord123', 1, 7),
+('Coordinador Sistemas', 'coord.sistemas@empresa.com', 'coord456', 2, 7),
+('Coordinador Salud', 'coord.salud@empresa.com', 'coord789', 7, 7),
+('Analista Contable', 'analista.contable@empresa.com', 'analista123', 4, 3),
+('Analista Jurídico', 'analista.juridico@empresa.com', 'analista456', 5, 3),
+('Analista Educación', 'analista.educacion@empresa.com', 'analista789', 8, 3),
+('Funcionario Atención', 'funcionario.atencion@empresa.com', 'func123', 3, 2),
+('Funcionario Salud', 'funcionario.salud@empresa.com', 'func456', 7, 2),
+('Juan Pérez', 'juan.perez@email.com', 'user123', NULL, 9),
+('María García', 'maria.garcia@email.com', 'user456', NULL, 9),
+('Empresa XYZ', 'contacto@xyz.com', 'empresa123', NULL, 9)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), password = VALUES(password), area_id = VALUES(area_id), rol_id = VALUES(rol_id);
+
+-- 4. Insertar PQRSD de prueba con variedad de tipos, estados y prioridades
+INSERT INTO pqrsd (tipo, descripcion, solicitante_nombre, solicitante_identificacion, solicitante_contacto, area_id, prioridad, estado, fecha_creacion, fecha_limite, fecha_resolucion, tipo_peticionario, medio, respuesta) VALUES
+-- Peticiones
+('Petición', 'Solicito copia de mi contrato laboral de los últimos 2 años', 'Carlos Rodríguez', '1023456789', 'carlos@email.com - 3201234567', 1, 'Media', 'Resuelta', '2025-09-01 09:30:00', '2025-09-11 17:00:00', '2025-09-05 14:20:00', 'Persona natural', 'Correo_electronico', 'Se ha enviado la copia del contrato al correo electrónico registrado.'),
+('Petición', 'Requiero información sobre los programas de bienestar para empleados', 'Ana Martínez', '1987654321', 'ana.martinez@empresa.com - 3109876543', 1, 'Baja', 'En Proceso', '2025-09-03 11:15:00', '2025-09-18 17:00:00', NULL, 'Persona jurídica', 'Pagina_web', NULL),
+
+-- Quejas
+('Queja', 'Maltrato por parte del funcionario de recepción', 'Laura Sánchez', '1054321890', 'laura@email.com - 3156789012', 3, 'Alta', 'Pendiente', '2025-09-05 14:45:00', '2025-09-10 17:00:00', NULL, 'Persona natural', 'Presencial', NULL),
+('Queja', 'Demora excesiva en la atención telefónica', 'Roberto Díaz', '1078901234', 'roberto.diaz@email.com - 3189012345', 3, 'Media', 'En Proceso', '2025-09-07 10:20:00', '2025-09-17 17:00:00', NULL, 'Persona natural', 'Telefono', 'Estamos implementando medidas para mejorar los tiempos de espera.'),
+
+-- Reclamos
+('Reclamo', 'Producto entregado en mal estado', 'Comercial ABC Ltda', '900123456-1', 'reclamos@abc.com - 7012345', 6, 'Alta', 'Resuelta', '2025-08-25 08:30:00', '2025-08-30 17:00:00', '2025-08-28 16:45:00', 'Persona jurídica', 'Correo_electronico', 'Se ha programado el reemplazo del producto para mañana.'),
+('Reclamo', 'Servicio técnico no realizado conforme a lo acordado', 'Pedro Ramírez', '1034567890', 'pedro.ramirez@email.com - 3178901234', 2, 'Alta', 'Resuelta', '2025-09-02 13:15:00', '2025-09-07 17:00:00', '2025-09-06 11:30:00', 'Persona natural', 'WhatsApp', 'Nuestro técnico visitará nuevamente para corregir las fallas sin costo adicional.'),
+
+-- Solicitudes
+('Solicitud', 'Autorización para uso de instalaciones deportivas', 'Colegio San José', '800987654-2', 'administracion@colegiosj.edu.co - 7023456', 8, 'Media', 'Pendiente', '2025-09-08 16:00:00', '2025-09-23 17:00:00', NULL, 'Persona jurídica', 'Correo_electronico', NULL),
+('Solicitud', 'Permiso especial para teletrabajo', 'Mónica López', '1098765432', 'monica.lopez@email.com - 3198765432', 1, 'Baja', 'Resuelta', '2025-09-04 09:45:00', '2025-09-19 17:00:00', '2025-09-10 10:15:00', 'Persona natural', 'Oficina_virtual', 'Solicitud aprobada por 3 meses, sujeto a evaluación.'),
+
+-- Denuncias
+('Denuncia', 'Presunto acto de corrupción en licitación', 'Anonymous', '0000000000', 'denuncias@transparencia.org - 018000123456', 5, 'Alta', 'En Proceso', '2025-09-06 15:30:00', '2025-09-11 17:00:00', NULL, 'Otro', 'Pagina_web', 'En investigación por el área jurídica.'),
+('Denuncia', 'Mala disposición de residuos peligrosos', 'Ecologistas Unidos', '901234567-8', 'info@ecologistasunidos.org - 7034567', 9, 'Alta', 'Pendiente', '2025-09-09 12:00:00', '2025-09-14 17:00:00', NULL, 'Persona jurídica', 'Correo_electronico', NULL),
+
+-- Más variedad de casos
+('Petición', 'Consulta sobre requisitos para practicas universitarias', 'Universidad Nacional', '800123456-9', 'practicas@unal.edu.co - 7045678', 1, 'Media', 'Resuelta', '2025-08-30 10:00:00', '2025-09-09 17:00:00', '2025-09-02 15:30:00', 'Persona jurídica', 'Correo_electronico', 'Se envió documentación requerida y formularios de aplicación.'),
+('Queja', 'Falta de suministro médico en centro de salud', 'Comunidad Vecinal', '0000000001', 'junta@comunidadvecinal.org - 3151234567', 7, 'Alta', 'Resuelta', '2025-09-01 08:00:00', '2025-09-06 17:00:00', '2025-09-03 12:00:00', 'Otro', 'Presencial', 'Suministros entregados y se estableció protocolo de abastecimiento.'),
+('Solicitud', 'Capacitación en herramientas digitales', 'Asociación de Pequeños Empresarios', '901987654-3', 'capacitacion@ape.org - 7056789', 8, 'Baja', 'En Proceso', '2025-09-10 14:20:00', '2025-09-25 17:00:00', NULL, 'Persona jurídica', 'Telefono', 'En coordinación con el área de educación para programar la capacitación.');
+
+
+
+--!!IMPORTANTE!! editar los ids dependiendo de los usuarios que tenga en la base de datos 
+
+-- 5. Insertar datos en el historial para seguimiento de las PQRSD
+INSERT INTO historial (pqrsd_id, usuario_id, accion, fecha) VALUES
+-- Historial para PQRSD #1
+(1, 81, 'PQRSD registrada y asignada a Recursos Humanos', '2025-09-01 09:30:00'),
+(1, 86, 'Documentación solicitada al archivo central', '2025-09-02 10:15:00'),
+(1, 86, 'Documentos preparados para envío', '2025-09-04 16:20:00'),
+(1, 86, 'Respuesta enviada al solicitante', '2025-09-05 14:20:00'),
+
+-- Historial para PQRSD #2
+(2, 81, 'PQRSD registrada como prioridad baja', '2025-09-03 11:15:00'),
+(2, 86, 'Información en recopilación con bienestar institucional', '2025-09-05 09:30:00'),
+
+-- Historial para PQRSD #5 (Reclamo resuelto)
+(5, 84, 'Reclamo registrado - prioridad alta', '2025-08-25 08:30:00'),
+(5, 89, 'Contactado proveedor para verificación', '2025-08-26 11:00:00'),
+(5, 89, 'Confirmado defecto de fábrica', '2025-08-27 15:30:00'),
+(5, 89, 'Reemplazo autorizado por coordinación', '2025-08-28 10:00:00'),
+(5, 89, 'Producto reemplazado y notificado al cliente', '2025-08-28 16:45:00'),
+
+-- Historial para PQRSD #6 (Reclamo resuelto)
+(6, 84, 'Reclamo técnico registrado', '2025-09-02 13:15:00'),
+(6, 87, 'Técnico asignado para revisión', '2025-09-03 09:00:00'),
+(6, 87, 'Diagnosticado error de instalación', '2025-09-05 14:00:00'),
+(6, 87, 'Reparación programada', '2025-09-06 08:30:00'),
+(6, 87, 'Servicio completado y verificado', '2025-09-06 11:30:00'),
+
+-- Historial para PQRSD #9 (Denuncia en proceso)
+(9, 82, 'Denuncia registrada - derivada a jurídica', '2025-09-06 15:30:00'),
+(9, 83, 'Iniciada investigación preliminar', '2025-09-07 10:00:00'),
+(9, 83, 'Recopilación de documentación de licitación', '2025-09-08 16:45:00'),
+
+-- Historial para PQRSD #12 (Queja resuelta)
+(12, 88, 'Queja por desabastecimiento registrada', '2025-09-01 08:00:00'),
+(12, 88, 'Verificado inventario en centro de salud', '2025-09-01 14:30:00'),
+(12, 88, 'Solicitado suministro de emergencia', '2025-09-02 09:15:00'),
+(12, 88, 'Suministros entregados al centro', '2025-09-03 10:45:00'),
+(12, 88, 'Notificada a la comunidad la solución', '2025-09-03 12:00:00');
+
+-- 6. Actualizar algunos estados basados en el historial
+UPDATE pqrsd SET estado = 'En Proceso' WHERE id = 2;
+UPDATE pqrsd SET estado = 'En Proceso' WHERE id = 4;
+UPDATE pqrsd SET estado = 'En Proceso' WHERE id = 9;
+UPDATE pqrsd SET estado = 'En Proceso' WHERE id = 13;
+
+-- 7. Insertar más PQRSD para tener mayor variedad en estadísticas
+INSERT INTO pqrsd (tipo, descripcion, solicitante_nombre, solicitante_identificacion, solicitante_contacto, area_id, prioridad, estado, fecha_creacion, fecha_limite, tipo_peticionario, medio) VALUES
+('Petición', 'Solicitud de certificación de estudios', 'Miguel Ángel Torres', '1122334455', 'miguel.torres@email.com - 3201122334', 8, 'Media', 'Pendiente', '2025-09-10 10:30:00', '2025-09-25 17:00:00', 'Persona natural', 'Presencial'),
+('Queja', 'Ruido excesivo en obras nocturnas', 'Comunidad Barrio Centro', '0000000002', 'vecinosbarriocentro@email.com - 3156677889', 6, 'Alta', 'Pendiente', '2025-09-09 20:15:00', '2025-09-14 17:00:00', 'Otro', 'Telefono'),
+('Solicitud', 'Apoyo para evento cultural comunitario', 'Fundación Cultura Viva', '902345678-9', 'eventos@culturasviva.org - 7067890', 4, 'Baja', 'Pendiente', '2025-09-08 11:45:00', '2025-09-23 17:00:00', 'Persona jurídica', 'Correo_electronico'),
+('Denuncia', 'Presunta venta irregular de medicamentos', 'Colegio Médico Regional', '903456789-0', 'eticamedica@cmregional.org - 7078901', 7, 'Alta', 'Pendiente', '2025-09-07 16:20:00', '2025-09-12 17:00:00', 'Persona jurídica', 'WhatsApp');
+
+-- Mostrar resumen de lo insertado
+SELECT 
+    'Áreas insertadas: ' AS Resumen, COUNT(*) AS Cantidad FROM areas
+UNION ALL 
+SELECT 'Roles insertados: ', COUNT(*) FROM roles
+UNION ALL 
+SELECT 'Usuarios insertados: ', COUNT(*) FROM usuarios
+UNION ALL 
+SELECT 'PQRSD insertadas: ', COUNT(*) FROM pqrsd
+UNION ALL 
+SELECT 'Registros de historial: ', COUNT(*) FROM historial;

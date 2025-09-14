@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Editar PQRSD{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Editar PQRSD</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select id="tipo" name="tipo" class="form-select" required>
+                        <option value="Petición" {% if pqrsd.tipo == 'Petición' %}selected{% endif %}>Petición</option>
+                        <option value="Queja" {% if pqrsd.tipo == 'Queja' %}selected{% endif %}>Queja</option>
+                        <option value="Reclamo" {% if pqrsd.tipo == 'Reclamo' %}selected{% endif %}>Reclamo</option>
+                        <option value="Sugerencia" {% if pqrsd.tipo == 'Sugerencia' %}selected{% endif %}>Sugerencia</option>
+                        <option value="Denuncia" {% if pqrsd.tipo == 'Denuncia' %}selected{% endif %}>Denuncia</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" class="form-control" rows="3" required>{{ pqrsd.descripcion }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="area_id" class="form-label">Área responsable</label>
+                    <select id="area_id" name="area_id" class="form-select" required>
+                        {% for area in areas %}
+                            <option value="{{ area.id }}" {% if pqrsd.area_id == area.id %}selected{% endif %}>{{ area.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="prioridad" class="form-label">Prioridad</label>
+                    <select id="prioridad" name="prioridad" class="form-select" required>
+                        <option value="Baja" {% if pqrsd.prioridad == 'Baja' %}selected{% endif %}>Baja (15 días)</option>
+                        <option value="Media" {% if pqrsd.prioridad == 'Media' %}selected{% endif %}>Media (10 días)</option>
+                        <option value="Alta" {% if pqrsd.prioridad == 'Alta' %}selected{% endif %}>Alta (5 días)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select id="estado" name="estado" class="form-select" required>
+                        <option value="Pendiente" {% if pqrsd.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="En Proceso" {% if pqrsd.estado == 'En Proceso' %}selected{% endif %}>En Proceso</option>
+                        <option value="Resuelta" {% if pqrsd.estado == 'Resuelta' %}selected{% endif %}>Resuelta</option>
+                        <option value="Cerrada" {% if pqrsd.estado == 'Cerrada' %}selected{% endif %}>Cerrada</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

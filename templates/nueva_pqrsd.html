@@ -1,0 +1,130 @@
+{% extends "base.html" %} {% block title %}Nueva PQRSD{% endblock %} {% block
+content %}
+<div class="container my-5">
+  <h2 class="mb-4 text-center">Registrar Nueva PQRSD</h2>
+
+  <!-- Mensajes flash: solo se muestran en base.html para evitar duplicidad -->
+
+  <div class="card">
+    <div class="card-body">
+      <!-- Agregué method="POST" -->
+      <form method="POST">
+        <!-- Tipo -->
+        <div class="mb-3">
+          <label for="tipo" class="form-label">Tipo</label>
+          <select id="tipo" name="tipo" class="form-select" required>
+            <option value="Petición">Petición</option>
+            <option value="Queja">Queja</option>
+            <option value="Reclamo">Reclamo</option>
+            <option value="Sugerencia">Sugerencia</option>
+            <option value="Denuncia">Denuncia</option>
+          </select>
+        </div>
+
+        <!-- Descripción -->
+        <div class="mb-3">
+          <label for="descripcion" class="form-label">Descripción</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            class="form-control"
+            rows="3"
+            required
+          ></textarea>
+        </div>
+
+        <!-- Solicitante -->
+        <h5>Datos del solicitante</h5>
+        <div class="mb-3">
+          <label for="solicitante_nombre" class="form-label">Nombre</label>
+          <input
+            type="text"
+            id="solicitante_nombre"
+            name="solicitante_nombre"
+            class="form-control"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="solicitante_identificacion" class="form-label"
+            >Identificación</label
+          >
+          <input
+            type="text"
+            id="solicitante_identificacion"
+            name="solicitante_identificacion"
+            class="form-control"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="solicitante_contacto" class="form-label">Contacto</label>
+          <input
+            type="text"
+            id="solicitante_contacto"
+            name="solicitante_contacto"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <!-- Tipo de Peticionario -->
+        <div class="mb-3">
+          <label for="tipo_peticionario" class="form-label"
+            >Tipo de Peticionario</label
+          >
+          <select
+            id="tipo_peticionario"
+            name="tipo_peticionario"
+            class="form-select"
+            required
+          >
+            {% for tipo in tipos_peticionario %}
+            <option value="{{ tipo }}">{{ tipo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Área -->
+        <div class="mb-3">
+          <label for="area_id" class="form-label">Área responsable</label>
+          <select id="area_id" name="area_id" class="form-select" required>
+            {% for area in areas %}
+            <option value="{{ area.id }}">{{ area.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Prioridad -->
+        <div class="mb-3">
+          <label for="prioridad" class="form-label">Prioridad</label>
+          <select id="prioridad" name="prioridad" class="form-select" required>
+            <option value="Baja">Baja (15 días)</option>
+            <option value="Media">Media (10 días)</option>
+            <option value="Alta">Alta (5 días)</option>
+          </select>
+        </div>
+
+        <!-- Medio -->
+        <div class="mb-3">
+          <label for="medio" class="form-label"
+            >¿Puede indicarnos el medio de referencia?</label
+          >
+          <select id="medio" name="medio" class="form-select" required>
+            <option value="Presencial">Presencial</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Correo_electronico">Correo electrónico</option>
+            <option value="Telefono">Teléfono</option>
+            <option value="Pagina_web">Página web</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Registrar</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
+          >Cancelar</a
+        >
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

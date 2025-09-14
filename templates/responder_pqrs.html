@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block title %}Responder PQRS{% endblock %} {% block
+content %}
+<div class="container my-5">
+  <div class="row">
+    <h2 class="mb-4 text-center">Responder PQRS</h2>
+    <div class="col-md-8 card mx-auto" style="max-width: 600px">
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label for="pqrs_id" class="form-label">ID PQRS</label>
+            <input
+              type="text"
+              id="pqrs_id"
+              name="pqrs_id"
+              class="form-control"
+              required
+              value="{{ pqrs_id if pqrs_id else '' }}"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="respuesta" class="form-label">Respuesta</label>
+            <textarea
+              id="respuesta"
+              name="respuesta"
+              class="form-control"
+              rows="5"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-success" style="width: 100%">
+            Enviar Respuesta
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

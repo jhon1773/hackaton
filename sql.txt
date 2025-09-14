@@ -1,0 +1,79 @@
+-- Crear usuario específico para el sistema PQRSD
+CREATE USER IF NOT EXISTS 'pqrsd_user'@'localhost' IDENTIFIED BY 'pqrsd_password_2023';
+
+-- Crear base de datos
+CREATE DATABASE IF NOT EXISTS sistema_pqrsd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Asignar privilegios al usuario
+GRANT ALL PRIVILEGES ON sistema_pqrsd.* TO 'pqrsd_user'@'localhost';
+
+-- Aplicar los cambios
+FLUSH PRIVILEGES;
+
+-- Usar la base de datos
+USE sistema_pqrsd;
+
+-- Tabla de áreas
+CREATE TABLE areas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT
+);
+
+-- Tabla de roles
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE,
+    descripcion TEXT
+);
+
+-- Tabla de usuarios
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(200) NOT NULL,
+    area_id INT,
+    rol_id INT NOT NULL,
+    FOREIGN KEY (area_id) REFERENCES areas(id),
+    FOREIGN KEY (rol_id) REFERENCES roles(id)
+);
+
+-- Tabla principal de PQRSD (con tipo_peticionario)
+CREATE TABLE pqrsd (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(20) NOT NULL, -- Petición, Queja, Reclamo, Solicitud, Denuncia
+    descripcion TEXT NOT NULL,
+    solicitante_nombre VARCHAR(200) NOT NULL,
+    solicitante_identificacion VARCHAR(50) NOT NULL,
+    solicitante_contacto VARCHAR(200) NOT NULL,
+    area_id INT NOT NULL,
+    prioridad VARCHAR(10) NOT NULL,
+    estado VARCHAR(20) DEFAULT 'Pendiente',
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_limite DATETIME NOT NULL,
+    fecha_resolucion DATETIME NULL,
+    tipo_peticionario VARCHAR(50) NOT NULL DEFAULT 'Persona natural',
+    medio VARCHAR(50) NOT NULL,
+    respuesta TEXT NULL,
+    FOREIGN KEY (area_id) REFERENCES areas(id)
+);
+
+-- Tabla de historial de cambios
+CREATE TABLE historial (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pqrsd_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    accion TEXT NOT NULL,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pqrsd_id) REFERENCES pqrsd(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+-- Crear índices para mejorar el rendimiento
+CREATE INDEX idx_pqrsd_tipo ON pqrsd(tipo);
+CREATE INDEX idx_pqrsd_estado ON pqrsd(estado);
+CREATE INDEX idx_pqrsd_area ON pqrsd(area_id);
+CREATE INDEX idx_pqrsd_fecha_creacion ON pqrsd(fecha_creacion);
+CREATE INDEX idx_pqrsd_fecha_limite ON pqrsd(fecha_limite);
+CREATE INDEX idx_historial_pqrsd ON historial(pqrsd_id);

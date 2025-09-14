@@ -1,0 +1,57 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-4">
+  <h2 class="fw-bold mb-3">Detalle de PQRSD</h2>
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Radicado</dt>
+        <dd class="col-sm-9">PQRS-{{ '%03d' % pqrsd.id }}</dd>
+        <dt class="col-sm-3">Tipo</dt>
+        <dd class="col-sm-9">{{ pqrsd.tipo }}</dd>
+        <dt class="col-sm-3">Descripción</dt>
+        <dd class="col-sm-9">{{ pqrsd.descripcion }}</dd>
+        <dt class="col-sm-3">Solicitante</dt>
+        <dd class="col-sm-9">
+          {{ pqrsd.solicitante_nombre }} (CC: {{
+          pqrsd.solicitante_identificacion }})
+        </dd>
+        <dt class="col-sm-3">Contacto</dt>
+        <dd class="col-sm-9">{{ pqrsd.solicitante_contacto }}</dd>
+        <dt class="col-sm-3">Área</dt>
+        <dd class="col-sm-9">{{ pqrsd.area.nombre if pqrsd.area else '' }}</dd>
+        <dt class="col-sm-3">Prioridad</dt>
+        <dd class="col-sm-9">{{ pqrsd.prioridad }}</dd>
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">{{ pqrsd.estado }}</dd>
+        <dt class="col-sm-3">Fecha de creación</dt>
+        <dd class="col-sm-9">
+          {{ pqrsd.fecha_creacion.strftime('%d/%m/%Y') if pqrsd.fecha_creacion
+          else '' }}
+        </dd>
+        <dt class="col-sm-3">Fecha límite</dt>
+        <dd class="col-sm-9">
+          {{ pqrsd.fecha_limite.strftime('%d/%m/%Y') if pqrsd.fecha_limite else
+          '' }}
+        </dd>
+        <dt class="col-sm-3">Fecha de resolución</dt>
+        <dd class="col-sm-9">
+          {{ pqrsd.fecha_resolucion.strftime('%d/%m/%Y') if
+          pqrsd.fecha_resolucion else '---' }}
+        </dd>
+
+        <dt class="col-sm-3">Respuesta</dt>
+        <dd class="col-sm-9">
+          {{ pqrsd.respuesta if pqrsd.respuesta else '---' }}
+        </dd>
+        <dt class="col-sm-3">Tipo de peticionario</dt>
+        <dd class="col-sm-9">{{ pqrsd.tipo_peticionario }}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="mt-3">
+    <a href="{{ url_for('gestion') }}" class="btn btn-secondary"
+      >Volver a gestión</a
+    >
+  </div>
+</div>
+{% endblock %}

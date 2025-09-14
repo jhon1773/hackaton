@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema PQRSD{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Dashboard de PQRSD</h2>
+
+    <div class="row">
+        <!-- Volumen de PQRSD -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Volumen de PQRSD</h5>
+                    <select id="periodoSelect" class="form-select mb-3">
+                        <option value="mes">Por mes</option>
+                        <option value="trimestre">Por trimestre</option>
+                        <option value="semestre">Por semestre</option>
+                        <option value="año">Por año</option>
+                    </select>
+                    <canvas id="chartVolumen" style="max-height:300px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clasificación por tipo -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Clasificación por tipo</h5>
+                    <canvas id="chartTipo" style="max-height:300px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clasificación por dependencia -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Clasificación por dependencia</h5>
+                    <canvas id="chartDependencia" style="max-height:300px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cumplimiento de plazos -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Cumplimiento de plazos</h5>
+                    <canvas id="chartPlazos" style="max-height:300px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clasificación por tipo de peticionario -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Clasificación por tipo de peticionario</h5>
+                    <canvas id="chartPeticionario" style="max-height:300px"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // 🔹 Datos dinámicos desde Flask
+    const volumen = JSON.parse('{{ volumen | tojson | safe }}');  
+    const labelsTipo = JSON.parse('{{ labels_tipo | tojson | safe }}');
+    const dataTipo = JSON.parse('{{ data_tipo | tojson | safe }}');
+    const labelsDep = JSON.parse('{{ labels_dep | tojson | safe }}');
+    const dataDep = JSON.parse('{{ data_dep | tojson | safe }}');
+    const cmp = JSON.parse('{{ cumplimiento | tojson | safe }}');
+    const labelsPet = JSON.parse('{{ labels_pet | tojson | safe }}');
+    const dataPet = JSON.parse('{{ data_pet | tojson | safe }}');
+
+    // 🔹 Colores fijos diferenciados
+    const coloresFijos = [
+        '#007bff', '#28a745', '#ffc107', '#dc3545',
+        '#17a2b8', '#6f42c1', '#fd7e14', '#20c997',
+        '#e83e8c', '#6610f2', '#ff6f61', '#00ced1'
+    ];
+
+    // 🔹 Gráfico Volumen
+    let ctxVol = document.getElementById('chartVolumen').getContext('2d');
+    let periodoActual = 'mes';
+    let chartVolumen = new Chart(ctxVol, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(volumen[periodoActual]),
+            datasets: [{
+                label: 'Cantidad',
+                data: Object.values(volumen[periodoActual]),
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        },
+        options: { maintainAspectRatio: false, responsive: true }
+    });
+
+    document.getElementById('periodoSelect').addEventListener('change', (e) => {
+        periodoActual = e.target.value;
+        chartVolumen.data.labels = Object.keys(volumen[periodoActual]);
+        chartVolumen.data.datasets[0].data = Object.values(volumen[periodoActual]);
+        chartVolumen.update();
+    });
+
+    // 🔹 Gráfico: Clasificación por tipo
+    new Chart(document.getElementById('chartTipo').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: labelsTipo,
+            datasets: [{
+                data: dataTipo,
+                backgroundColor: coloresFijos.slice(0, labelsTipo.length)
+            }]
+        },
+        options: { maintainAspectRatio: false, responsive: true }
+    });
+
+    // 🔹 Gráfico: Clasificación por dependencia
+    new Chart(document.getElementById('chartDependencia').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labelsDep,
+            datasets: [{
+                label: 'Cantidad',
+                data: dataDep,
+                backgroundColor: 'rgba(153, 102, 255, 0.7)'
+            }]
+        },
+        options: { maintainAspectRatio: false, responsive: true }
+    });
+
+    // 🔹 Gráfico: Cumplimiento de plazos (forzado con 0 si no hay datos)
+    let enPlazo = (cmp && cmp.en_plazo) ? cmp.en_plazo : 0;
+    let extemporaneas = (cmp && cmp.extemporaneas) ? cmp.extemporaneas : 0;
+
+    new Chart(document.getElementById('chartPlazos').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Cumplidas a tiempo', 'Extemporáneas'],
+            datasets: [{
+                data: [enPlazo, extemporaneas],
+                backgroundColor: ['#28a745','#dc3545']
+            }]
+        },
+        options: { maintainAspectRatio: false, responsive: true }
+    });
+
+    // 🔹 Gráfico: Clasificación por tipo de peticionario
+    new Chart(document.getElementById('chartPeticionario').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: labelsPet,
+            datasets: [{
+                data: dataPet,
+                backgroundColor: coloresFijos.slice(0, labelsPet.length)
+            }]
+        },
+        options: { maintainAspectRatio: false, responsive: true }
+    });
+</script>
+{% endblock %}

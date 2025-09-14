@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-2 fw-bold">Gestión de PQRSD</h2>
+    <p class="text-muted mb-4">Administra todas las solicitudes, quejas, reclamos y peticiones</p>
+    
+    <!-- Tarjeta de filtros con nuevo estilo -->
+    <div class="filter-card mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('gestion') }}">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5 mb-2">
+                        <input type="text" class="form-control" name="busqueda" placeholder="Buscar por cédula, nombre o número de radicado..." value="{{ request.args.get('busqueda', '') }}">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <select class="form-select" name="tipo">
+                            <option value="">Todos los tipos</option>
+                            <option value="Petición" {% if request.args.get('tipo') == 'Petición' %}selected{% endif %}>Petición</option>
+                            <option value="Queja" {% if request.args.get('tipo') == 'Queja' %}selected{% endif %}>Queja</option>
+                            <option value="Reclamo" {% if request.args.get('tipo') == 'Reclamo' %}selected{% endif %}>Reclamo</option>
+                            <option value="Solicitud" {% if request.args.get('tipo') == 'Solicitud' %}selected{% endif %}>Solicitud</option>
+                            <option value="Denuncia" {% if request.args.get('tipo') == 'Denuncia' %}selected{% endif %}>Denuncia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <select class="form-select" name="estado">
+                            <option value="">Todos los estados</option>
+                            <option value="Pendiente" {% if request.args.get('estado') == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="En Proceso" {% if request.args.get('estado') == 'En Proceso' %}selected{% endif %}>En proceso</option>
+                            <option value="Resuelta" {% if request.args.get('estado') == 'Resuelta' %}selected{% endif %}>Resuelta</option>
+                            <option value="Cerrada" {% if request.args.get('estado') == 'Cerrada' %}selected{% endif %}>Cerrada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 mb-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ url_for('exportar_excel') }}" class="btn btn-success me-2">
+            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+        </a>
+        <a href="{{ url_for('exportar_pdf') }}" class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
+        </a>
+    </div>
+
+    <!-- Contenedor de tabla con nuevo estilo -->
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Radicado</th>
+                        <th>Solicitante</th>
+                        <th>Tipo</th>
+                        <th>Fecha Creación</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('ver_pqrsd', pqrsd_id=item.id) }}" class="fw-bold text-primary text-decoration-none">
+                                PQRS-{{ '%04d' % item.id }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="fw-medium">{{ item.solicitante_nombre }}</div>
+                            <small class="text-muted">ID: {{ item.solicitante_identificacion }}</small>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if item.tipo == 'Queja' %}type-badge-queja
+                                {% elif item.tipo == 'Denuncia' %}type-badge-denuncia
+                                {% elif item.tipo == 'Petición' %}type-badge-peticion
+                                {% elif item.tipo == 'Reclamo' %}type-badge-reclamo
+                                {% elif item.tipo == 'Solicitud' %}type-badge-solicitud
+                                {% else %}bg-secondary{% endif %}">
+                                {{ item.tipo }}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar3 me-1 text-muted"></i>
+                            {{ item.fecha_creacion.strftime('%d/%m/%Y') if item.fecha_creacion else 'N/A' }}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if item.estado == 'Pendiente' %}status-badge-pendiente
+                                {% elif item.estado == 'En Proceso' %}status-badge-proceso
+                                {% elif item.estado == 'Resuelta' %}status-badge-resuelta
+                                {% elif item.estado == 'Cerrada' %}status-badge-cerrada
+                                {% else %}bg-light text-dark{% endif %}">
+                                {{ item.estado }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if item.prioridad == 'Alta' %}priority-badge-alta
+                                {% elif item.prioridad == 'Media' %}priority-badge-media
+                                {% else %}priority-badge-baja{% endif %}">
+                                {{ item.prioridad }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('ver_pqrsd', pqrsd_id=item.id) }}" class="btn btn-outline-primary" title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('editar_pqrsd', pqrsd_id=item.id) }}" class="btn btn-outline-success" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if session.get('user_rol') in ['Administrador', 'Funcionario'] %}
+                                <a href="{{ url_for('responder_pqrs') }}?pqrs_id={{ item.id }}" class="btn btn-outline-info" title="Responder">
+                                    <i class="bi bi-reply"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-inbox display-4 text-muted d-block mb-2"></i>
+                            <p class="text-muted">No se encontraron PQRSD con los filtros aplicados</p>
+                            <a href="{{ url_for('gestion') }}" class="btn btn-outline-primary btn-sm">
+                                Limpiar filtros
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Espaciador antes del footer -->
+    <div class="content-spacer"></div>
+    
+    <!-- Divisor decorativo -->
+    <div class="content-divider"></div>
+
+    <!-- Paginación -->
+    {% if pagination and pagination.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('gestion', page=pagination.prev_num, **filtros) }}">Anterior</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages() %}
+            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('gestion', page=page_num, **filtros) }}">{{ page_num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('gestion', page=pagination.next_num, **filtros) }}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
