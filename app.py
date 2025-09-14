@@ -4,17 +4,17 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# Configuración de la base de datos para Render
+# Configuración de base de datos para psycopg3
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    # Render puede entregar la URL con 'postgres://' en vez de 'postgresql://'
-    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://')
+    # Para psycopg3, mantener postgresql://
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 else:
-    # Configuración local (ajusta según tu entorno)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/sistema_pqrsd'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto')
+
 db = SQLAlchemy(app)
 
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session
@@ -809,6 +809,5 @@ def descargar_reporte_pdf():
     return send_file(output, download_name='reporte_resumen.pdf', as_attachment=True)
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
